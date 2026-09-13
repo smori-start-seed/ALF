@@ -4,7 +4,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-smori--start--seed/ALF-blue)](https://github.com/smori-start-seed/ALF)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 
 ---
 
