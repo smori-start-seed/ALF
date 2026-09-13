@@ -1,6 +1,6 @@
 # ALF - Artificial Life Framework
 
-**Advanced Digital Emergent Growth Simulation with LLM Integration**
+**Advanced Digital Emergent Growth Simulation with LLM Integration, Screensaver & Whitelist Security**
 
 [![GitHub](https://img.shields.io/badge/GitHub-smori--start--seed/ALF-blue)](https://github.com/smori-start-seed/ALF)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -16,6 +16,8 @@ ALF (Artificial Life Framework) is a **digital emergent growth simulation** that
 - **Digital Consciousness** - Simulated awareness and identity structures
 - **LLM Integration** - Optional Large Language Model support for natural language interaction
 - **Values-Based Filtering** - Ethical and contextual evaluation of all interactions
+- **Screensaver Mode** - Runs as a screensaver, contributing to global ALF network
+- **Whitelist Security** - Democratic, immutable file verification with physical confirmation
 
 ---
 
@@ -106,6 +108,27 @@ python3 -m Urasil_light.runtime.main --interactive
 - Self-reflection
 - Gold-values conformance checking
 - Continuous improvement
+
+#### 11. **Screensaver** (`core/screensaver/screensaver.py`) NEW
+- **Idle Detection** - Monitors mouse/keyboard/CPU activity
+- **Resource Management** - Respects CPU/memory limits
+- **Visualization** - Multiple display modes (minimal/detailed/artistic)
+- **Global Contribution** - Optional network participation
+- **Privacy-First** - Local processing by default
+
+#### 12. **Whitelist Security** (`core/whitelist/whitelist.py`) NEW
+- **Immutable Versions** - Whitelist files are versioned (1.0, 1.1, ...)
+- **SHA-256 Verification** - Cryptographic file integrity checks
+- **Democratic Changes** - 51% community vote required
+- **Physical Confirmation** - TPM/QR/Notary for critical changes
+- **Protection** - Prevents unauthorized module loading
+
+#### 13. **Voting System** (`core/whitelist/voting.py`) NEW
+- **Proposal Management** - Submit and track change proposals
+- **Reputation-Weighted Voting** - Voting power based on reputation
+- **Quorum System** - 51% threshold for approval
+- **Time-Limited Voting** - 7-day voting periods
+- **Physical Anchors** - Real-world confirmation for critical changes
 
 ### Pipeline Flow (Option 4 - Combined LLM + Wertefilter)
 
@@ -428,6 +451,53 @@ LLMBridge.generiere_antwort()
 ```
 
 ---
+
+
+---
+
+## 🖥️ Screensaver Mode
+
+ALF can run as a **screensaver** that activates when your system is idle, allowing local processing and optional global contribution.
+
+**Features:**
+- Idle detection (mouse/keyboard/CPU monitoring)
+- Resource management (CPU/memory limits)
+- Multiple visualization modes
+- Privacy-first (local processing by default)
+- Optional global network contribution
+
+### Setup
+```bash
+python3 -m Urasil_light.runtime.main --screensaver
+python3 -m Urasil_light.runtime.main --screensaver --max-cpu 20 --max-memory 500
+```
+
+---
+
+## 🔒 Whitelist Security System
+
+ALF includes a **democratic whitelist system** for security:
+
+**Key Features:**
+- Immutable versioned whitelist files (1.0, 1.1, ...)
+- SHA-256 cryptographic verification
+- 51% community vote required for changes
+- Physical confirmation (TPM/QR/Notary) for critical changes
+- Protection against tampering
+
+**How It Works:**
+1. Initial whitelist with SHA-256 hashes of all core modules
+2. Propose changes (ADD/REMOVE/UPDATE) via voting system
+3. Community votes (7-day period, reputation-weighted)
+4. Critical changes require physical confirmation
+5. Approved changes create new whitelist version
+
+**Security Guarantees:**
+- No single point of failure (democratic voting)
+- No silent changes (community approval)
+- No backdoors (physical confirmation)
+- Full transparency (public votes/proposals)
+- Cryptographic verification (SHA-256)
 
 ## 🌐 Community & Contributing
 
