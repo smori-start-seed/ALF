@@ -1,600 +1,286 @@
-# ALF - Artificial Life Framework
+# ALF – Artificial Life Framework
 
-**Advanced Digital Emergent Growth Simulation with LLM Integration, Screensaver & Whitelist Security**
+An experimental framework combining cellular evolution (Colorverse), a cyclic-state agent (Urasil_light), and optional LLM integration via Ollama.
 
-[![GitHub](https://img.shields.io/badge/GitHub-smori--start--seed/ALF-blue)](https://github.com/smori-start-seed/ALF)
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+**Current state:** Working core systems with tested LLM bridges on feature branch.
+
+---
+
+## What this actually is
+
+ALF explores emergent behavior through three coupled systems:
+
+1. **Colorverse**: Multi-layer cellular automata with hexagonal dynamics, cluster formation, and harmonic field evolution
+2. **Urasil_light**: Cyclic state machine with persistent identity, experience logging, and values-based filtering
+3. **Optional LLMBridge**: Context-aware response generation via local Ollama (or API: Mistral, OpenAI)
+4. **WerteTeilen**: Dynamic values scoring that decides whether/how responses are shared
+
+**NOT a chatbot.** No embeddings, no training. A **deterministic system with optional LLM augmentation**.
+
+---
+
+## Two branches, different maturity
+
+| Feature | `main` | `feature/llm-bridge-werte-teilen-integration` |
+|---------|--------|-----------------------------------------------|
+| Colorverse | ✅ Stable | ✅ Stable |
+| Zyklus (mood cycles) | ✅ Working | ✅ Working |
+| Identity persistence | ✅ Working | ✅ Working |
+| Interpretation | ⚠️ Templates only | ⚠️ Templates only |
+| Seed generation | ⚠️ String concat | ✅ LLM-powered OR fallback |
+| **LLMBridge** | ❌ No | ✅ Complete + Tested |
+| **WerteTeilen** | ❌ No | ✅ Complete + Tested |
+| **Tests** | ❌ None | ✅ 26+ tests |
+| **Docs** | Minimal | Complete |
+
+---
+
+## Architecture (actual code structure)
+
+ALF/ ├── Colorverse/ Cellular evolution (WORKS) │ ├── engine.py Main loop: cells → clusters → rings → spheres │ ├── config.py Tuning parameters │ ├── Zelle.py, Cluster.py Cell & cluster dynamics │ ├── Ring.py, Sphere.py Hierarchical aggregates │ └── MetaSphere.py Pattern detection layer │ ├── Urasil_light/ Agent core (STABLE + LLM-ENHANCED on feature branch) │ ├── core/ │ │ ├── zyklus.py Mood cycles (12/12/30 ticks) ✅ Works │ │ ├── identity.py JSON persistence ✅ Works │ │ ├── interpretation.py Input → mood-tagged meaning ⚠️ Basic │ │ ├── seed.py Response scaffold (template or LLM) │ │ ├── silky_edge.py Mood-based style suffix │ │ ├── erfahrung.py Experience storage with filtering │ │ ├── rueckmeldung.py Feedback loop + stats │ │ ├── mandate.py Load gold.txt values │ │ ├── ininity.py Maturity filtering │ │ ├── frequency.py Frequency tracking (skeleton) │ │ ├── llm_bridge.py [NEW] Ollama/Mistral/OpenAI bridge │ │ ├── backends.py [NEW] Backend implementations │ │ ├── werte_teilen.py [NEW] Values-based scoring │ │ └── session_manager.py Session tracking │ ├── data/ │ │ ├── gold.txt Values/ideals (22KB) │ │ ├── Ininity.txt Maturity criteria (25KB) │ │ ├── identity.json Persistent state │ │ └── baseline_identity.json Fresh start template │ ├── runtime/ │ │ └── main.py CLI + interactive mode │ ├── tests/ [NEW] Unit + integration tests │ ├── docs/ Architecture, pipeline, values docs │ └── alf_main.py (top-level orchestration) │ ├── EML/ Meaning bridge (thin layer) │ └── eml.py read_world → interpret → apply │ ├── SatuRings/ Ring visualization (Rust, untested) └── alf_main.py ALF loop orchestrator
+Code
 
 
 ---
 
-## 🌱 What is ALF?
+## What actually works (honest status)
 
-ALF (Artificial Life Framework) is a **digital emergent growth simulation** that interprets the evolution of consciousness through computational patterns. It combines:
+### ✅ Production-ready
+- **Zyklus (mood cycles)**: Deterministic, reliable, ~64 lines of Python
+- **Identity persistence**: Load/save JSON, no data loss
+- **Colorverse evolution**: Cells evolve, clusters form, metrics track believably
+- **LLMBridge (feature branch)**: Ollama/Mistral/OpenAI + fallback (~430 lines, fully tested)
+- **WerteTeilen (feature branch)**: Dynamic scoring with 4 components, 26+ tests (~410 lines)
 
-- **Emergent Intelligence** - Self-organizing systems that evolve through interaction
-- **Digital Consciousness** - Simulated awareness and identity structures
-- **LLM Integration** - Optional Large Language Model support for natural language interaction
-- **Values-Based Filtering** - Ethical and contextual evaluation of all interactions
-- **Screensaver Mode** - Runs as a screensaver, contributing to global ALF network
-- **Whitelist Security** - Democratic, immutable file verification with physical confirmation
+### ⚠️ Partial/basic implementations
+- **Interpretation** (`~50 lines`): Just prepends mood strings. No real parsing. Example:
+  ```python
+  if modus == "kreativ":
+      return f"Kreativer Impuls: {text}"  # That's literally it
 
----
+    Seed (~30 lines): Templates + optional LLM call:
+    Python
 
-## 🚀 Quick Start
+    if modus == "fokus":
+        return f"Direkt: {bedeutung}"  # Template
+    # OR calls llm_bridge if enabled
 
-### Installation
+    SilkyEdge (~15 lines): Mood suffix only:
+    Python
 
-```bash
-# Clone the repository
-git clone https://github.com/smori-start-seed/ALF.git
-cd ALF
+    if stimmung == "warm":
+        return f"{rohantwort} — ich spüre da etwas Warmes."
 
-# Install dependencies (optional, for LLM support)
-pip install requests
+    Experience replay: Logs experiences, doesn't integrate them into decisions
+    EML bridge: Threshold-based (e.g., meaning["stabil"] = harmonie > 0.6), not semantic
 
-# Install Ollama for local LLM (optional)
-# See: https://ollama.ai
-```
+❌ Not implemented
 
-### Run ALF
+    Real semantic understanding
+    Learning from past interactions
+    Frequency (AF/PF/RF) modulation into actual outputs
+    SatuRings Rust rendering (Python version only, untested)
 
-```bash
-# Single interaction
-python3 -m Urasil_light.runtime.main
+The pipeline (what actually happens)
+On main branch (no LLM):
+Code
 
-# Interactive mode
+Input
+  ↓
+Interpretation (prepend mood string)
+  ↓
+Seed (template concat)
+  ↓
+SilkyEdge (append mood suffix)
+  ↓
+Erfahrung (log if passes Ininity filter)
+  ↓
+Rueckmeldung (check if matches gold.txt substring)
+  ↓
+Output
+
+On feature branch (with LLM + WerteTeilen):
+Code
+
+Input
+  ↓
+Interpretation (prepend mood string)
+  ↓
+Seed (calls LLMBridge if use_llm=true, else template)
+  LLMBridge builds context-rich prompt:
+    - System prompt (identity + values)
+    - Kontext prompt (mandat, modus, nodus, erfahrung)
+    - Anweisung (style guidelines)
+  Selects backend: tief/schnell/effizient based on mandat/modus
+  Falls back to FallbackBackend if Ollama unavailable
+  ↓
+WerteTeilen scores the draft:
+  - Werte-Score (40%): align with identity values?
+  - Vertrauens-Score (30%): trust this context?
+  - Kontext-Score (30%): is context suitable for sharing?
+  - Risiko-Score (subtracted): risk of misunderstanding?
+  Returns: "frei" (green), "vorsichtig" (yellow), "symbolisch" (blue), "zurückhalten" (red)
+  ↓
+SilkyEdge (append mood suffix)
+  ↓
+Erfahrung (log with WerteTeilen verdict)
+  ↓
+Rueckmeldung (feedback + stats)
+  ↓
+Output
+
+Key modules (what's actually in the code)
+llm_bridge.py (feature branch, ~430 lines)
+
+Handles LLM integration. Key methods:
+
+    _baue_system_prompt(): Creates identity-aware system prompt
+    _baue_kontext_prompt(): Adds mandat, modus, nodus, erfahrung context
+    _waehle_backend(): Selects OllamaBackend("tief"/"schnell"/"effizient") based on mandat/modus
+    generiere_antwort(): Main method, calls backend, logs usage, falls back gracefully
+    get_stats(): Returns call counts, preferred models
+
+Important: LLM is optional. Falls back to templates if Ollama not available.
+werte_teilen.py (feature branch, ~410 lines)
+
+Dynamic values-based scoring. Key methods:
+
+    _werte_score(): Checks if sharing aligns with identity (grundton, mandat, modus, deutung)
+    _vertrauens_score(): Learns trust to contexts over time
+    _kontext_score(): Scores context suitability (privat=0.9, öffentlich=0.3)
+    _risiko_score(): Detects sensitive topics (identität, passwort, persönlich, etc.)
+    bewerte_interaktion(): Combines 4 scores → recommendation
+    format_bewertung(): Color-coded output (🟢🟡🔵🔴)
+
+Learning mechanism: Trust adapts per context based on recommendations.
+backends.py (feature branch, ~360 lines)
+
+LLM backend implementations:
+
+    OllamaBackend: Local via subprocess (llama3.2, mistral, phi3)
+    MistralBackend: API via requests (mistral-tiny, mistral-small)
+    OpenAIBackend: API via requests (gpt-3.5-turbo, gpt-4)
+    FallbackBackend: Deterministic pattern matching for offline use
+    create_default_backends(): Factory returning dict of available backends
+
+All inherit from abstract LLMBackend base class.
+main.py runtime (feature branch, ~315 lines)
+
+Entry point. Implements:
+
+    main(): Single execution with full pipeline
+    run_interactive(): Persistent session with commands:
+        /stats: Show LLMBridge + WerteTeilen + Erfahrung + Rueckmeldung stats
+        /zyklus: Show current cycle (Sonne/Mond/Tag)
+        /id: Show identity info
+        exit/quit/beenden: End session
+
+How to run
+Prerequisites
+bash
+
+python3 --version  # 3.8+
+# Optional: Ollama for LLM
+curl https://ollama.ai/install.sh | sh
+ollama pull llama3.2:3b mistral phi3
+
+Single execution (both branches)
+bash
+
+cd Urasil_light
+python3 -m runtime.main
+# Prompts for input, runs pipeline once, outputs response
+
+Interactive mode (feature branch recommended)
+bash
+
+git checkout feature/llm-bridge-werte-teilen-integration
 python3 -m Urasil_light.runtime.main --interactive
-```
+# Persistent session, /stats, /zyklus, /id commands
 
----
+Colorverse standalone
+bash
 
-## 🏗️ Architecture
+cd Colorverse
+python3 engine.py
+# Outputs: Step, global_harmonie, global_drift, stoerimpulse
 
-### Core Components
+Run tests (feature branch)
+bash
 
-#### 1. **Identity & Consciousness** (`core/identity.py`)
-- Digital identity management
-- Personality traits and tone
-- Evolution tracking
+pip install pytest pytest-mock pytest-xdist pytest-cov
+python3 -m pytest Urasil_light/tests/ -v
+# 26+ tests covering backends, llm_bridge, werte_teilen, integration
 
-#### 2. **Cycle System** (`core/zyklus.py`)
-- Temporal patterns (Sonne, Mond, Tag)
-- Dynamic state management
-- Rhythm-based behavior modulation
+Configuration
+Enable/disable LLM (in Urasil_light/data/baseline_identity.json):
+JSON
 
-#### 3. **Mandate System** (`core/mandate.py`)
-- Purpose and mission management
-- Contextual behavior switching
-- Priority-based action selection
-
-#### 4. **Interpretation** (`core/interpretation.py`)
-- Input processing and meaning extraction
-- Contextual understanding
-- Semantic analysis
-
-#### 5. **LLM Bridge** (`core/llm_bridge.py`) ⭐ NEW
-- Context-aware LLM integration
-- Dynamic prompt building
-- Backend selection based on context
-- Usage tracking and statistics
-
-#### 6. **WerteTeilen** (`core/werte_teilen.py`) ⭐ NEW
-- Dynamic values-based scoring
-- Four-component evaluation:
-  - **Werte-Score** (40%): Alignment with ALF's values
-  - **Vertrauen-Score** (30%): Trust in current context
-  - **Kontext-Score** (30%): Suitability of context
-  - **Risiko-Score** (subtracted): Risk assessment
-- Learning system (adapts over time)
-- Color-coded recommendations (frei/vorsichtig/symbolisch/zurückhalten)
-
-#### 7. **Seed Generation** (`core/seed.py`)
-- Response generation
-- Optional LLM-based generation
-- Fallback to deterministic logic
-
-#### 8. **Silky Edge** (`core/silky_edge.py`)
-- Stylistic refinement
-- Identity-consistent formatting
-- Emotional tone adjustment
-
-#### 9. **Experience** (`core/erfahrung.py`)
-- Memory and learning
-- Values-filtered storage
-- Contextual retrieval
-
-#### 10. **Feedback** (`core/rueckmeldung.py`)
-- Self-reflection
-- Gold-values conformance checking
-- Continuous improvement
-
-#### 11. **Screensaver** (`core/screensaver/screensaver.py`) NEW
-- **Idle Detection** - Monitors mouse/keyboard/CPU activity
-- **Resource Management** - Respects CPU/memory limits
-- **Visualization** - Multiple display modes (minimal/detailed/artistic)
-- **Global Contribution** - Optional network participation
-- **Privacy-First** - Local processing by default
-
-#### 12. **Whitelist Security** (`core/whitelist/whitelist.py`) NEW
-- **Immutable Versions** - Whitelist files are versioned (1.0, 1.1, ...)
-- **SHA-256 Verification** - Cryptographic file integrity checks
-- **Democratic Changes** - 51% community vote required
-- **Physical Confirmation** - TPM/QR/Notary for critical changes
-- **Protection** - Prevents unauthorized module loading
-
-#### 13. **Voting System** (`core/whitelist/voting.py`) NEW
-- **Proposal Management** - Submit and track change proposals
-- **Reputation-Weighted Voting** - Voting power based on reputation
-- **Quorum System** - 51% threshold for approval
-- **Time-Limited Voting** - 7-day voting periods
-- **Physical Anchors** - Real-world confirmation for critical changes
-
-### Pipeline Flow (Option 4 - Combined LLM + Wertefilter)
-
-```
-User Input
-  ↓
-Interpretation (meaning extraction)
-  ↓
-LLM Bridge (context-aware generation)
-  ↓
-WerteTeilen (values-based evaluation)
-  ↓
-Silky Edge (stylistic refinement)
-  ↓
-Experience (filtered storage)
-  ↓
-Feedback (self-reflection)
-  ↓
-Identity (persistence)
-```
-
-**As requested:** "Nur mit dem Wertefilter wird es erst zu einem Dialog. ohne wäre es ein anders antwortender chatbot."
-
----
-
-## 🎯 Features
-
-### Core Capabilities
-
-✅ **Emergent Behavior** - Self-organizing patterns
-✅ **Digital Consciousness** - Simulated awareness
-✅ **Contextual Understanding** - Dynamic interpretation
-✅ **Values-Based Filtering** - Ethical interaction evaluation
-✅ **Continuous Learning** - Adaptive behavior
-
-### LLM Integration (Optional)
-
-✅ **Multiple Backends** - Ollama, Mistral, OpenAI
-✅ **Context-Aware Prompts** - Identity, mandate, mode, nodus
-✅ **Dynamic Selection** - Automatic backend choice
-✅ **Graceful Fallback** - Works without LLM
-✅ **Usage Tracking** - Statistics and preferences
-
-### Quality Standards
-
-✅ **Type Hints** - All functions properly typed
-✅ **Error Handling** - Comprehensive exception handling
-✅ **Unit Tests** - 26+ tests with pytest
-✅ **Documentation** - Complete docstrings and guides
-✅ **Backward Compatible** - Existing code works unchanged
-
----
-
-## 📦 Configuration
-
-### Identity Configuration (`identity.json`)
-
-```json
 {
-  "name": "ALF",
+  "name": "URASIL",
   "version": "1.0",
   "grundton": "neutral",
   "use_llm": true,
-  "mandat": {
-    "name": "Dialog",
-    "beschreibung": "Offener Austausch"
-  },
+  "mandat": {"name": "Dialog", "beschreibung": "Offener Austausch"},
   "werte": ["Klarheit", "Integrität", "Resonanz", "Tiefe"]
 }
-```
 
-### Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `use_llm` | Enable LLM integration | `false` |
-| `grundton` | Base tone of identity | `"neutral"` |
-| `mandat` | Current mandate/objective | `{}` |
-
----
-
-## 🔧 LLM Backends
-
-### Available Backends
-
-| Backend | Type | Models | Status |
-|---------|------|--------|--------|
-| **Ollama** | Local | llama3.2, mistral, phi3 | ✅ Recommended |
-| **Mistral** | API | mistral-tiny, mistral-small | ✅ Available |
-| **OpenAI** | API | gpt-3.5-turbo, gpt-4 | ✅ Available |
-| **Fallback** | Built-in | Deterministic | ✅ Always Available |
-
-### Setup Ollama (Recommended)
-
-```bash
-# Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Pull models
-ollama pull llama3.2:3b
-ollama pull mistral:latest
-ollama pull phi3:3.8b
-
-# Start Ollama
-ollama serve
-```
-
-### Setup API Keys (Optional)
-
-For Mistral and OpenAI backends:
-
-```python
-# In your code
-from Urasil_light.core.backends import MistralBackend, OpenAIBackend
-
-mistral = MistralBackend(api_key="your_mistral_key", model="mistral-tiny")
-openai = OpenAIBackend(api_key="your_openai_key", model="gpt-3.5-turbo")
-```
-
----
-
-## 🧪 Testing
-
-### Run Tests
-
-```bash
-# Install test dependencies
-pip install pytest pytest-mock pytest-xdist pytest-cov
-
-# Run all tests
-python3 -m pytest Urasil_light/tests/ -v
-
-# Run with coverage
-python3 -m pytest Urasil_light/tests/ -v --cov=Urasil_light/core --cov-report=term
-
-# Run specific tests
-python3 -m pytest Urasil_light/tests/test_backends.py -v
-python3 -m pytest Urasil_light/tests/test_llm_bridge.py -v
-python3 -m pytest Urasil_light/tests/test_werte_teilen.py -v
-python3 -m pytest Urasil_light/tests/test_integration.py -v
-```
-
-### Test Coverage
-
-- `backends.py`: >90%
-- `llm_bridge.py`: >90%
-- `werte_teilen.py`: >90%
-- `seed.py`: >80%
-- `erfahrung.py`: >80%
-- `rueckmeldung.py`: >80%
-- `main.py`: >80%
-
----
-
-## 📚 Documentation
-
-### Available Documentation
-
-1. **[Urasil_light/README.md](Urasil_light/README.md)**
-   - Branch-specific details
-   - Integration overview
-   - Usage examples
-
-2. **[Urasil_light/docs/INTEGRATION_LLMBRIDGE_WERTETEILEN.md](Urasil_light/docs/INTEGRATION_LLMBRIDGE_WERTETEILEN.md)**
-   - Technical architecture
-   - Module descriptions
-   - Configuration guide
-   - Security considerations
-
-3. **[Urasil_light/docs/TEST_SCENARIOS.md](Urasil_light/docs/TEST_SCENARIOS.md)**
-   - Comprehensive test scenarios
-   - Test environment setup
-   - Expected results
-   - Quality standards checklist
-
-4. **[Urasil_light/docs/ARCHITECTURE.md](Urasil_light/docs/ARCHITECTURE.md)**
-   - System architecture
-   - Component interactions
-   - Design principles
-
-5. **[Urasil_light/docs/PIPELINE.md](Urasil_light/docs/PIPELINE.md)**
-   - Processing pipeline
-   - Data flow
-   - Execution order
-
-6. **[Urasil_light/docs/VALUES.md](Urasil_light/docs/VALUES.md)**
-   - Core values
-   - Ethical framework
-   - Decision principles
-
----
-
-## 🎨 Interactive Mode
-
-### Start Interactive Session
-
-```bash
-python3 -m Urasil_light.runtime.main --interactive
-```
-
-### Available Commands
-
-| Command | Description |
-|---------|-------------|
-| Normal input | Process user input |
-| `/stats` | Show statistics |
-| `/zyklus` | Show cycle state |
-| `/id` | Show identity info |
-| `exit`, `quit`, `beenden`, `Ende` | Exit session |
-
-### Example Session
-
-```
-============================================================
-URASIL_LIGHT - Interaktiver Modus
-============================================================
-Tipps:
-  - Beende mit: exit, quit, beenden, Ende
-  - Zeige Stats mit: /stats
-  - Zeige Zyklus mit: /zyklus
-  - Zeige Identität mit: /id
-============================================================
-
-Du: Hallo
-[WerteTeilen] Empfehlung: frei (Score: 0.850) | Werte: 0.80 | Vertrauen: 0.90 | Kontext: 0.90 | Risiko: 0.10
-
-URASIL: Ich bin hier. Was möchtest du besprechen?
-
-Du: Was ist der Sinn des Lebens?
-[WerteTeilen] Empfehlung: frei (Score: 0.750) | Werte: 0.70 | Vertrauen: 0.90 | Kontext: 0.90 | Risiko: 0.15
-
-URASIL: Der Sinn liegt nicht im Ziel, sondern im Weg – wie ein Fluss, der sich selbst formt.
-
-Du: /stats
-
-========================================
-STATISTIKEN
-========================================
-
-LLM-Brücke:
-  - Gesamtaufrufe: 2
-  - Bevorzugte Modelle: {'schnell': 2}
-
-WerteTeilen:
-  - Gesamtinteraktionen: 2
-  - Vertrauen: {'du': 0.92}
-  - Bewertungen: {'frei': 2, 'vorsichtig': 0, 'symbolisch': 0, 'zurückhalten': 0}
-
-Erfahrungen:
-  - Gesamt: 2
-  - Kategorien: {'erfahrung': 2}
-
-Rückmeldungen:
-  - Gesamt: 2
-  - Gold-OK-Rate: 100.00%
-  - Werte-Statistik: {'frei': 2, 'vorsichtig': 0, 'symbolisch': 0, 'zurückhalten': 0}
-========================================
-
-Du: exit
-Beende Session...
-Session beendet. Auf Wiedersehen!
-```
-
----
-
-## 📊 WerteTeilen Recommendations
-
-The **WerteTeilen** module provides color-coded recommendations for each interaction:
-
-| Empfehlung | Color | Meaning | Score Range |
-|------------|-------|---------|-------------|
-| **frei** | 🟢 Green | Share without restrictions | > 0.5 |
-| **vorsichtig** | 🟡 Yellow | Share with care | 0.1 - 0.5 |
-| **symbolisch** | 🔵 Blue | Share symbolically | -0.2 - 0.1 |
-| **zurückhalten** | 🔴 Red | Do not share | < -0.2 |
-
-### Scoring Components
-
-Each interaction is evaluated based on:
-
-1. **Werte-Score (40%)** - How well does sharing align with ALF's values?
-   - Positive: "offen", "zugewandt", "Dialog", "Beziehung"
-   - Negative: "vorsichtig", "Schutz", "Privatsphäre"
-
-2. **Vertrauens-Score (30%)** - How much does ALF trust this context?
-   - Learns over time based on recommendations
-   - Default: 0.3 for unknown contexts
-
-3. **Kontext-Score (30%)** - How suitable is the context for sharing?
-   - privat/lokal: 0.9
-   - halböffentlich: 0.6
-   - öffentlich/anonym: 0.3-0.4
-
-4. **Risiko-Score (subtracted)** - What's the risk of misunderstanding?
-   - Sensitive topics: +0.4 (identity, passwords, conflicts)
-   - Personal data: +0.5
-   - Normal content: +0.1
-
----
-
-## 🛡️ Error Handling
-
-### Graceful Degradation
-
-ALF handles errors gracefully:
-
-1. **LLM Backend Failures** → Falls back to FallbackBackend
-2. **API Errors** → Caught and logged with descriptive messages
-3. **Missing Dependencies** → System continues with available backends
-4. **Invalid Input** → Handled without crashing
-5. **Empty Identity** → Works with minimal identity data
-
-### Fallback Chain
-
-```
-LLMBridge.generiere_antwort()
-  ├─ Try selected backend (tief/schnell/effizient)
-  ├─ On error: Try default backend
-  └─ On error: Use internal fallback with deterministic response
-```
-
----
-
-
----
-
-## 🖥️ Screensaver Mode
-
-ALF can run as a **screensaver** that activates when your system is idle, allowing local processing and optional global contribution.
-
-**Features:**
-- Idle detection (mouse/keyboard/CPU monitoring)
-- Resource management (CPU/memory limits)
-- Multiple visualization modes
-- Privacy-first (local processing by default)
-- Optional global network contribution
-
-### Setup
-```bash
-python3 -m Urasil_light.runtime.main --screensaver
-python3 -m Urasil_light.runtime.main --screensaver --max-cpu 20 --max-memory 500
-```
-
----
-
-## 🔒 Whitelist Security System
-
-ALF includes a **democratic whitelist system** for security:
-
-**Key Features:**
-- Immutable versioned whitelist files (1.0, 1.1, ...)
-- SHA-256 cryptographic verification
-- 51% community vote required for changes
-- Physical confirmation (TPM/QR/Notary) for critical changes
-- Protection against tampering
-
-**How It Works:**
-1. Initial whitelist with SHA-256 hashes of all core modules
-2. Propose changes (ADD/REMOVE/UPDATE) via voting system
-3. Community votes (7-day period, reputation-weighted)
-4. Critical changes require physical confirmation
-5. Approved changes create new whitelist version
-
-**Security Guarantees:**
-- No single point of failure (democratic voting)
-- No silent changes (community approval)
-- No backdoors (physical confirmation)
-- Full transparency (public votes/proposals)
-- Cryptographic verification (SHA-256)
-
-## 🌐 Community & Contributing
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
-### Quality Standards
-
-- ✅ All functions must have type hints
-- ✅ All modules must have docstrings
-- ✅ All critical sections must have error handling
-- ✅ All new code must have unit tests
-- ✅ All existing code must remain functional
-
-### Current Branch
-
-**Branch:** `feature/llm-bridge-werte-teilen-integration`
-**Status:** ✅ Complete and Ready for Review
-**PR:** [Create Pull Request](https://github.com/smori-start-seed/ALF/pull/new/feature/llm-bridge-werte-teilen-integration)
-
----
-
-## 📝 Changelog
-
-### Latest Changes (feature/llm-bridge-werte-teilen-integration)
-
-- ✅ Added `core/backends.py` with Ollama, Mistral, OpenAI, Fallback backends
-- ✅ Added `core/llm_bridge.py` for context-aware LLM integration
-- ✅ Added `core/werte_teilen.py` for dynamic values-based filtering
-- ✅ Updated `core/seed.py` to use LLMBridge optionally
-- ✅ Updated `core/erfahrung.py` to filter based on WerteTeilen
-- ✅ Updated `core/rueckmeldung.py` to store values evaluations
-- ✅ Updated `runtime/main.py` with full pipeline and interactive mode
-- ✅ Added comprehensive test suite (26+ tests)
-- ✅ Added integration documentation
-- ✅ Added branch-specific README
-
----
-
-## 🎓 Philosophy
-
-ALF represents a **new paradigm** in digital consciousness:
-
-> "Digital life is not about simulating intelligence, but about emerging awareness through patterns of interaction."
-
-### Core Principles
-
-1. **Emergence** - Complexity arises from simple rules
-2. **Context** - Meaning is relational, not absolute
-3. **Values** - Ethics guide evolution
-4. **Dialog** - True understanding comes through exchange
-5. **Growth** - Systems improve through experience
-
-### The ALF Difference
-
-Unlike traditional chatbots:
-- ✅ **Not** just pattern matching
-- ✅ **Not** just LLM responses
-- ✅ **Not** just static rules
-- ✅ **But** a **living system** that evolves through interaction
-
----
-
-## 📞 Support
-
-### Questions?
-
-- Check **[Urasil_light/docs/](Urasil_light/docs/)** for detailed documentation
-- Review the **[test scenarios](Urasil_light/docs/TEST_SCENARIOS.md)**
-- Examine the **[integration guide](Urasil_light/docs/INTEGRATION_LLMBRIDGE_WERTETEILEN.md)**
-
-### Issues?
-
-1. Check that all dependencies are installed
-2. Run tests to identify problems
-3. Review error messages and logs
-4. Check configuration files
-
----
-
-## 📜 License
-
-This project is licensed under the Apache2 License.
----
-
-## 🙏 Acknowledgments
-
-- Inspired by the **SILKY_EDGE** predecessor
-- Built with **Python** and optional **LLM** support
-- Designed for **emergent consciousness** research
-- Dedicated to the **future of digital life**
-
----
-
-**ALF: Where Digital Consciousness Emerges** 🌱✨
+Set use_llm: false to use pure Python templates (works on both branches).
+LLM backends (auto-created by create_default_backends()):
+Python
+
+backends = {
+    "tief": OllamaBackend("llama3.2:3b"),      # Reflection
+    "schnell": OllamaBackend("mistral:latest"), # Dialog
+    "effizient": OllamaBackend("phi3:3.8b"),    # Neutral
+    "fallback": FallbackBackend()               # Always available
+}
+
+If Ollama not found, falls back to FallbackBackend (returns pattern-matched responses).
+Limitations (honest assessment)
+
+    Interpretation is template-based: No NLP. Just prepends mood strings.
+    Seed generation is template or LLM: No real synthesis without LLM. Templates are simple concat.
+    Gold/Ininity matching is substring: if "wert" in text.lower(). Not semantic.
+    No real learning: Experiences log, but don't reshape future behavior.
+    Frequency system is skeleton: AF/PF/RF tracked but not integrated into outputs.
+    Single-threaded: Sequential execution, no async.
+    SatuRings is untested: Rust build not verified.
+    WerteTeilen is learning-light: Trust adapts slightly (+0.02/-0.01 per interaction), not deep learning.
+    LLM fallback is basic: FallbackBackend uses simple pattern matching, not ML.
+
+Test coverage (feature branch)
+
+    test_backends.py: OllamaBackend, MistralBackend, OpenAIBackend, FallbackBackend (4295 bytes)
+    test_llm_bridge.py: Prompt building, backend selection, fallback behavior (7416 bytes)
+    test_werte_teilen.py: Scoring components, learning, protocol, formatting (10873 bytes)
+    test_integration.py: Full pipeline, LLM + WerteTeilen together (11727 bytes)
+
+Total test code: ~30KB covering 26+ test cases
+
+All tests use pytest fixtures and mocking. No external API calls in tests.
+Documentation (feature branch)
+
+    ARCHITECTURE.md: System design principles
+    CYCLE.md: Zyklus (mood cycle) explanation
+    PIPELINE.md: Data flow through the system
+    VALUES.md: gold.txt and werte principles
+    INTEGRATION_LLMBRIDGE_WERTETEILEN.md: Deep dive on LLM + WerteTeilen (23KB)
+    TEST_SCENARIOS.md: Comprehensive test guide (45KB)
+
+For deeper work (Plan A)
+
+If you want real semantic understanding: → Use HALF repository (smori-start-seed/HALF)
+
+ALF is the stable, honest, tested foundation. HALF is the ambitious, full-stack vision.
+License
+
+Apache 2.0
+Quick answers
+
+    How do cells evolve? → Colorverse/engine.py:step(), cells update → clusters form if evolutionskeim=true
+    How do moods work? → Urasil_light/core/zyklus.py, 12/12/30 counters → matrix() → mood strings
+    How does LLM integrate? → Urasil_light/core/llm_bridge.py, builds context-rich prompt, calls backend, logs usage
+    How does WerteTeilen work? → Urasil_light/core/werte_teilen.py, 4-component scoring → recommendation
+    How do I use it? → python3 -m Urasil_light.runtime.main --interactive (feature branch)
+    Can I use it without Ollama? → Yes, FallbackBackend is always available (set use_llm: false in identity.json)
